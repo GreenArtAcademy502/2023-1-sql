@@ -193,6 +193,35 @@ GROUP BY B.film_id
 HAVING COUNT(*) = 2
 ORDER BY film_id;
 
+SELECT c.first_name, c.last_name, a.address, ct.city
+FROM customer c
+INNER JOIN address a
+ON c.address_id = a.address_id
+INNER JOIN city ct
+ON a.city_id = ct.city_id
+WHERE a.district = 'California';
+
+
+SELECT C.*
+FROM actor A
+INNER JOIN film_actor B
+ON A.actor_id = B.actor_id
+INNER JOIN film C
+ON B.film_id = C.film_id
+WHERE A.first_name = 'JOHN';
+
+SELECT a1.address addr1
+FROM address a1
+INNER JOIN address a2
+ON a1.city_id = a2.city_id
+WHERE a1.address_id <> a2.address_id;
+
+SELECT address FROM address
+WHERE city_id IN (
+	SELECT city_id FROM address
+	GROUP BY city_id
+	HAVING COUNT(1) > 1
+);
 
 
 
