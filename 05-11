@@ -1,0 +1,276 @@
+-- 05/11
+
+SELECT 1 as num, 1 as str
+UNION ALL
+SELECT 9, 'xyzaa'
+UNION all
+SELECT 1 , 1;
+
+-- 고객의 이름, 성/ 배우의 이름, 성 같이 띄워주세요. union 이용
+
+SELECT 'customer' as typ, first_name, last_name AS dddd
+FROM customer
+UNION
+SELECT 'actor', first_name, last_name
+FROM actor
+ORDER BY first_name;
+
+
+-- 배우, 고객 둘다 이니셜이 JD인 사람리스트
+SELECT 'customer' as typ, first_name, last_name
+FROM customer
+WHERE first_name REGEXP '^J' AND last_name REGEXP '^D'
+UNION
+SELECT 'actor', first_name, last_name
+FROM actor
+WHERE first_name REGEXP '^J' AND last_name REGEXP '^D';
+
+
+
+SELECT T.*
+FROM
+(
+	SELECT 'customer' as typ, first_name, last_name
+	FROM customer
+	UNION
+	SELECT 'actor', first_name, last_name
+	FROM actor
+) T
+WHERE T.first_name REGEXP '^J' AND T.last_name REGEXP '^D';
+
+
+SELECT 'customer' as typ, first_name, last_name
+FROM customer
+WHERE first_name REGEXP '^J' AND last_name REGEXP '^D'
+UNION
+SELECT 'actor', first_name, last_name
+FROM actor
+WHERE first_name REGEXP '^J' AND last_name REGEXP '^D'
+;
+
+
+
+-- intersect
+SELECT A.first_name, A.last_name
+FROM (
+	SELECT 'customer' as typ, first_name, last_name
+	FROM customer
+	WHERE first_name REGEXP '^J' AND last_name REGEXP '^D'
+	UNION
+	SELECT 'actor',first_name, last_name
+	FROM actor
+	WHERE first_name REGEXP '^J' AND last_name REGEXP '^D'
+) A
+GROUP BY A.first_name, A.last_name
+HAVING COUNT(1) > 1;
+
+
+-- except
+SELECT A.first_name, A.last_name
+FROM (
+	SELECT 'customer' as typ, first_name, last_name
+	FROM customer
+	WHERE first_name REGEXP '^J' AND last_name REGEXP '^D'
+	UNION
+	SELECT 'actor',first_name, last_name
+	FROM actor
+	WHERE first_name REGEXP '^J' AND last_name REGEXP '^D'
+) A
+GROUP BY A.first_name, A.last_name
+HAVING COUNT(1) = 1;
+
+
+CREATE TABLE except_a(
+ id INT UNSIGNED
+);
+
+CREATE TABLE except_b(
+ id INT UNSIGNED
+);
+
+INSERT INTO except_a
+(id)
+VALUES
+(10), (11), (12), (10), (10);
+
+INSERT INTO except_b
+(id)
+VALUES
+(10), (10);
+
+-- 10, 11, 12
+
+SELECT id FROM except_a
+UNION
+SELECT id FROM except_b;
+
+
+
+-- 6-2
+SELECT first_name, last_name
+FROM actor
+WHERE last_name REGEXP '^[L]'
+UNION
+SELECT first_name, last_name
+FROM customer
+WHERE last_name REGEXP '^[L]';
+
+
+-- 6-3
+SELECT first_name, last_name
+FROM actor
+WHERE last_name REGEXP '^[L]'
+UNION
+SELECT first_name, last_name
+FROM customer
+WHERE last_name REGEXP '^[L]'
+ORDER BY last_name;
+
+
+CREATE TABLE string_tbl(
+	char_fld CHAR(30),
+	vchar_fld VARCHAR(30),
+	text_fld text
+);
+
+INSERT INTO string_tbl
+( char_fld, vchar_fld, text_fld )
+VALUES
+( 
+	'This is char data',
+	'This is varchar data',
+	'This is text data'
+);
+
+SELECT *, QUOTE(text_fld) FROM string_tbl;
+
+UPDATE string_tbl
+SET vchar_fld = 'This is a piece of extremely long varchar data';
+
+UPDATE string_tbl
+SET text_fld = 'This s\'tring didn''t WORK, but it does now';
+
+SELECT @@SESSION.sql_mode;
+
+SET sql_mode='strict';
+
+SHOW WARNINGS;
+
+
+SELECT lname, fname, CONCAT(lname, ' ', fname)
+FROM person;
+
+
+SELECT lname, LENGTH(lname), CHAR_LENGTH(lname)
+FROM person;
+
+SELECT lname, POSITION('홍' IN lname)
+FROM person;
+
+
+SELECT * FROM string_tbl;
+
+SELECT text_fld, POSITION('n' IN text_fld), LOCATE('n', text_fld, 12)
+FROM string_tbl;
+
+SELECT '안녕' = '안녕'sakila
+		, 'abc' = 'ABC'
+		, 'abc' = 'cba'
+		, STRCMP('abc', 'ABCC') 
+		, STRCMP('abc', 'a');
+
+SELECT 
+	NAME, 
+	NAME LIKE '%y',
+	NAME REGEXP '^[C]'
+FROM category;
+
+SELECT first_name || ' ' || last_name 
+FROM customer;
+
+SELECT first_name, REPLACE(first_name, 'BA', 'DA') FROM customer;
+
+-- 이름에서 PH > TH 바꾸고, NI > NA  ====> STETHANAE
+
+SELECT customer_id, first_name
+, REPLACE(REPLACE(first_name, 'PH', 'TH'), 'NI', 'NA')
+FROM customer
+WHERE customer_id = 41;
+
+SELECT 'goodbye world', INSERT('goodbye world', 9, 0, 'cruel ')
+, INSERT('goodbye asdf world', 
+		POSITION('world' IN 'goodbye asdf world'), CHAR_LENGTH('world'), 'cls');
+
+-- 영화 제목 빈칸에 NICE 추가해주세요.
+
+SELECT title, POSITION(' ' in title)
+, INSERT(title, POSITION(' ' in title), 0, ' NICE')
+FROM film;
+
+SELECT email, 
+mid(email, 3), 
+substring(email, 3), 
+SUBSTRING(email, 3, 6), 
+mid(email, 3, 6), 
+SUBSTR(email, 3, 3),
+mid(email, 3, 3)
+FROM customer;
+
+-- 사용자 이메일 쪼개서 출력 @ 기준으로 
+SELECT email, POSITION('@' IN email)
+, LEFT(email, POSITION('@' IN email) - 1)
+, RIGHT(email, char_length(email) - POSITION('@' IN email))
+, SUBSTR(email, 1, POSITION('@' IN email) - 1)
+, SUBSTR(email, POSITION('@' IN email) + 1)
+FROM customer;
+
+SELECT (38 * 59) / (78 - (8 * 6));
+
+
+SELECT MOD(9, 2);
+
+SELECT TRUNCATE(1123.3456, 1), ABS(-10), ABS(10);
+
+SELECT NOW(), CURRENT_DATE(), CURRENT_TIME(), CURRENT_TIMESTAMP();
+
+SELECT CAST('23/05/11 16:46:30' AS DATETIME)
+, CONVERT('2023-05-11 16:46:30', DATETIME);
+
+SELECT date_add(CURRENT_DATE(), interval 5 day)
+, DATE_ADD(NOW(), INTERVAL '03:27:11' hour_second);
+
+-- 1953-09-02 > 1955-10-02
+SELECT * FROM employees
+WHERE emp_no = 10001;
+
+UPDATE employees
+SET birth_date = DATE_ADD(birth_date, INTERVAL '2-1' YEAR_MONTH)
+WHERE emp_no = 10001;
+
+SELECT 
+	CURDATE()
+	, SYSDATE()
+	, WEEKDAY(NOW()) -- 월(0), 화(1), 수(2), 목(3), 금(4), 토(5), 일(6)
+	, DAYNAME(NOW())
+	, LAST_DAY('2002-10-10') -- 그 달의 마지막 일
+	, LAST_DAY('2023-06-11')
+	, DATE_SUB(NOW(), INTERVAL '2' YEAR)
+	, EXTRACT(month FROM NOW())
+	, DATEDIFF('2023-09-20', '2023-05-12')
+	;
+
+
+SELECT * FROM departments
+
+
+SELECT 
+	'customer' as typ
+	, `first_name` as kkk
+	, last_name AS dddd
+FROM customer
+UNION
+SELECT 'actor', first_name, last_name
+FROM actor
+ORDER BY kkk;
+
+
